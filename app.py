@@ -7,7 +7,7 @@ import PyPDF2
 
 
 def simplify_text(text: str) -> str:
-    if not text.strip():
+    if text is None or not text.strip():
         return "No text selected"
 
     try:
@@ -50,7 +50,7 @@ with gr.Blocks(title="EasyRead", theme=gr.themes.Soft()) as demo:
         1.  **Upload a PDF** file using the 'Upload PDF' button.
         2.  The extracted text will appear in the 'Original Text' area.
         3.  **Highlight any part of the text** in the 'Original Text' box to get its simplified version.
-        4.  The simplified output will appear in the 'Simplified Version' box below.
+        4.  The simplified output will appear in the 'Simplified Version' box below the upload section.
         """
     )
 
@@ -63,6 +63,17 @@ with gr.Blocks(title="EasyRead", theme=gr.themes.Soft()) as demo:
             )
             pdf_status_message = gr.Markdown("No PDF uploaded yet.", elem_id="pdf_status")
 
+            gr.Markdown("<br>")
+
+            simplified_output = gr.Textbox(
+                label="Simplified Version",
+                lines=8,
+                interactive=False,
+                autoscroll=True,
+                placeholder="Simplified text will appear here after you highlight text above.",
+                elem_id="simplified_text_area"
+            )
+
         with gr.Column(scale=2):
             original_text_display = gr.Textbox(
                 label="Original Text (from PDF)",
@@ -72,15 +83,6 @@ with gr.Blocks(title="EasyRead", theme=gr.themes.Soft()) as demo:
                 max_lines=30,
                 placeholder="Upload a PDF to see its text here. Then highlight text to simplify.",
                 elem_id="original_text_area"
-            )
-            gr.Markdown("---")
-            simplified_output = gr.Textbox(
-                label="Simplified Version",
-                lines=8,
-                interactive=False,
-                autoscroll=True,
-                placeholder="Simplified text will appear here after you highlight text above.",
-                elem_id="simplified_text_area"
             )
 
 
@@ -93,12 +95,15 @@ with gr.Blocks(title="EasyRead", theme=gr.themes.Soft()) as demo:
 
     original_text_display.select(
         fn=simplify_text,
-        inputs=gr.State(None),
         outputs=simplified_output,
         trigger_mode="always_last",
         js="""
-        (original_text_area, simplified_text_area) => {
+        (original_text_area_comp, simplified_text_area_comp) => {
             const textarea = document.getElementById("original_text_area").querySelector("textarea");
+            if (!textarea) {
+                console.error("Original text area textarea element not found.");
+                return null;
+            }
             const selectedText = textarea.value.substring(textarea.selectionStart, textarea.selectionEnd);
             return selectedText;
         }
