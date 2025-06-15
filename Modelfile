@@ -1,0 +1,4 @@
+FROM ./gemma-3-finetune_v3.Q8_0.gguf
+PARAMETER temperature 1
+PARAMETER top_p 0.95
+PARAMETER top_k 64
